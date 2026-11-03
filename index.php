@@ -38,11 +38,11 @@
     <label for="nom">Nom de la quête</label>
     <input id="nom" name="nom" required maxlength="150">
 
-    <label for="priorite">Priorité</label>
-    <select id="priorite" name="priorite">
-        <option value="haute">Haute</option>
-        <option value="moyenne">Moyenne</option>
-        <option value="basse">Basse</option>
+    <label for="etat">Etat</label>
+    <select id="etat" name="etat">
+        <option value="a_demarrer">a demarrer</option>
+        <option value="en_cours">en cours</option>
+        <option value="finit">finit</option>
     </select>
 
     <button type="submit">Ajouter</button>
