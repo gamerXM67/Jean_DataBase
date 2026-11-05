@@ -8,28 +8,36 @@
     
     $titrePage = "Ma liste de tâches";
     $compterTachesRestantes = 0;
-    $total=count($quetes);
     $requetes = $pdo->query('SELECT Id_quete, nom, etat, exclamation FROM quete');
     $quetes = $requetes->fetchAll();
+    $total=count($quetes);
     function compterTachesRestantes(array $quetes): int
     {
     $restantes=0;
 
-    if (!in_array($etat, $etatsAutorises, true)) {
+        foreach ($quetes as $plop_de_la_madame):
+            if ($plop_de_la_madame['exclamation'] === 1) {
+                $restantes++;
+            }
+        endforeach; 
+        return $restantes;
+    }
+    
+if (!in_array($etat, $etatsAutorises, true)) {
     $etat = 'toutes';
 }
 if ($etat === 'toutes') {
     $requete = $pdo->query(
-        'SELECT Id_quete, Nom, Etat, exclamation
-         FROM quetes
+        'SELECT Id_quete, nom, etat, exclamation
+         FROM quete
          ORDER BY Id_quete DESC'
     );
 } else {
     $valeurExclamation = ($etat === 'fini') ? 1 : 0;
 
     $requete = $pdo->prepare(
-        'SELECT Id_quete, Nom, Etat, exclamation
-         FROM quetes
+        'SELECT Id_quete, nom, etat, exclamation
+         FROM quete
          WHERE exclamation = :exclamation
          ORDER BY Id_quete DESC'
     );
@@ -45,16 +53,6 @@ if ($etat === 'toutes') {
 
 $quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
 
-
-
-        foreach ($quetes as $plop_de_la_madame):
-            if ($plop_de_la_madame['exclamation'] === "true") {
-                $restantes++;
-            }
-        endforeach; 
-        return $restantes;
-    }
-    
     $restantes=compterTachesRestantes($quetes);
     $Resultat = $total - $restantes; 
 
@@ -90,25 +88,51 @@ $quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
     <a href="index.php?etat=fini">Quêtes terminées</a>
 </nav>
 
-<ul>
-    <?php foreach ($quetes as $plop_de_la_madame): ?>
-        <li>
-         <?= $plop_de_la_madame['nom'] ?> - <?= $plop_de_la_madame['etat'] ?> - <?= $plop_de_la_madame['exclamation'] ?>    
-        <!-- Afficher ici les informations de la tâche -->
-         <?php 
-            if ($plop_de_la_madame['etat'] === 'finit') {
-           echo '<span class="terminee">Terminée</span>';
-            } else {
-           echo '<span class="a-faire">À faire</span>';
-            }
+<h2>Quêtes affichées</h2>
 
-         ?>
-        </li>
-    <?php endforeach; ?>
-    <?php $Resultat = $total - $restantes; 
-    echo $Resultat;
-?>
-</ul>
+<p>
+    Dans cette sélection :
+    <?= $total ?> quête(s),
+    dont <?= $restantes ?> en cours
+    et <?= $Resultat ?> terminée(s).
+</p>
+
+<?php if (empty($quetes)): ?>
+
+    <p>Aucune quête ne correspond à ce filtre.</p>
+
+<?php else: ?>
+
+    <ul>
+        <?php foreach ($quetes as $quete): ?>
+            <li>
+                <h3>
+                    <?= htmlspecialchars(
+                        $quete['nom'],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
+                </h3>
+
+                <p>
+                    <?= htmlspecialchars(
+                        $quete['etat'],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
+                </p>
+
+                <span>
+                    <?= (int) $quete['exclamation'] === 1
+                        ? 'Terminée'
+                        : 'En cours' ?>
+                </span>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+
+<?php endif; ?>
+
 </main>
 
 <?php include __DIR__ . '/assert/footer.php'; ?>
