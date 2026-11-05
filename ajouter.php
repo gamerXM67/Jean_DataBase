@@ -32,4 +32,5 @@ $requetes->execute([
     'etat' => $etat,
 ]);
 
-echo 'Tâche enregistrée !';
+header('Location: index.php', true, 303);
+exit;
