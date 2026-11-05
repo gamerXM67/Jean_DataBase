@@ -2,6 +2,9 @@
     require __DIR__ . '/donnees.php';
     require __DIR__ . '/connexion.php';
 
+
+    $etatsAutorises = ['toutes', 'demarre', 'fini'];
+    $etat = $_GET['etat'] ?? 'toutes';
     
     $titrePage = "Ma liste de tâches";
     $compterTachesRestantes = 0;
@@ -11,6 +14,38 @@
     function compterTachesRestantes(array $quetes): int
     {
     $restantes=0;
+
+    if (!in_array($etat, $etatsAutorises, true)) {
+    $etat = 'toutes';
+}
+if ($etat === 'toutes') {
+    $requete = $pdo->query(
+        'SELECT Id_quete, Nom, Etat, exclamation
+         FROM quetes
+         ORDER BY Id_quete DESC'
+    );
+} else {
+    $valeurExclamation = ($etat === 'fini') ? 1 : 0;
+
+    $requete = $pdo->prepare(
+        'SELECT Id_quete, Nom, Etat, exclamation
+         FROM quetes
+         WHERE exclamation = :exclamation
+         ORDER BY Id_quete DESC'
+    );
+
+    $requete->bindValue(
+        ':exclamation',
+        $valeurExclamation,
+        PDO::PARAM_INT
+    );
+
+    $requete->execute();
+}
+
+$quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+
 
         foreach ($quetes as $plop_de_la_madame):
             if ($plop_de_la_madame['exclamation'] === "true") {
@@ -25,6 +60,7 @@
 
     include __DIR__ . '/assert/header.php';
 ?>
+
 
 
 <main>
@@ -48,6 +84,12 @@
     <button type="submit">Ajouter</button>
 </form>
 
+<nav>
+    <a href="index.php">Toutes les quêtes</a>
+    <a href="index.php?etat=demarre">Quêtes en cours</a>
+    <a href="index.php?etat=fini">Quêtes terminées</a>
+</nav>
+
 <ul>
     <?php foreach ($quetes as $plop_de_la_madame): ?>
         <li>
@@ -55,9 +97,9 @@
         <!-- Afficher ici les informations de la tâche -->
          <?php 
             if ($plop_de_la_madame['etat'] === 'finit') {
-            echo 'Terminée';
+           echo '<span class="terminee">Terminée</span>';
             } else {
-            echo 'À faire';
+           echo '<span class="a-faire">À faire</span>';
             }
 
          ?>
@@ -70,3 +112,12 @@
 </main>
 
 <?php include __DIR__ . '/assert/footer.php'; ?>
+
+<style>
+    .terminee {
+        color: green;
+    }
+    .a-faire {
+        color: red;
+    }
+</style>
