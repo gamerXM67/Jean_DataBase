@@ -54,7 +54,7 @@
          <?= $plop_de_la_madame['nom'] ?> - <?= $plop_de_la_madame['etat'] ?> - <?= $plop_de_la_madame['exclamation'] ?>    
         <!-- Afficher ici les informations de la tâche -->
          <?php 
-            if ( $plop_de_la_madame['exclamation'] === 1) {
+            if ($plop_de_la_madame['etat'] === 'finit') {
             echo 'Terminée';
             } else {
             echo 'À faire';
@@ -70,4 +70,3 @@
 </main>
 
 <?php include __DIR__ . '/assert/footer.php'; ?>
-

@@ -24,12 +24,13 @@ echo 'Données reçues et valides.';
 
 $requetes = $pdo->prepare(
     'INSERT INTO quete (nom, etat, exclamation)
-     VALUES (:nom, :etat, 0)'
+     VALUES (:nom, :etat, :exclamation)'
 );
 
 $requetes->execute([
     'nom' => $nom,
     'etat' => $etat,
+    'exclamation' => $etat === 'finit' ? 1 : 0,
 ]);
 
 header('Location: index.php', true, 303);
