@@ -1,4 +1,5 @@
 <?php
+    require __DIR__ . '/securite.php';
     require __DIR__ . '/donnees.php';
     require __DIR__ . '/connexion.php';
 
@@ -56,27 +57,105 @@ $quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
     $restantes=compterTachesRestantes($quetes);
     $Resultat = $total - $restantes; 
 
+$message = $_SESSION['message'] ?? null;
+
+unset($_SESSION['message']);
+
+
+$theme = $_COOKIE['theme'] ?? 'clair';
+
+if (!in_array($theme, ['clair', 'sombre'], true)) {
+    $theme = 'clair';
+}
+
+
+
     include __DIR__ . '/assert/header.php';
 ?>
 
 
 
-<main>
+<main class="theme-<?= htmlspecialchars(
+    $theme,
+    ENT_QUOTES,
+    'UTF-8'
+) ?>">
+    
         <h1><?php echo $titrePage; ?></h1>
+
+        <?php if (is_string($message)): ?>
+    <p role="status">
+        <?= htmlspecialchars(
+            $message,
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?>
+    </p>
+<?php endif; ?>
+
+<h2>Préférence d’affichage</h2>
+
+<form action="preference.php" method="post">
+    <input
+        type="hidden"
+        name="csrf"
+        value="<?= htmlspecialchars(
+            $_SESSION['csrf'],
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?>"
+    >
+
+    <label for="theme">Thème</label>
+
+    <select id="theme" name="theme">
+        <option
+            value="clair"
+            <?= $theme === 'clair' ? 'selected' : '' ?>
+        >
+            Clair
+        </option>
+
+        <option
+            value="sombre"
+            <?= $theme === 'sombre' ? 'selected' : '' ?>
+        >
+            Sombre
+        </option>
+    </select>
+
+    <button type="submit">Enregistrer le thème</button>
+</form>
 
 <p>le resultat(<?php echo $Resultat; ?>) est egal a total(<?php echo $total; ?>) - restantes(<?php echo $restantes; ?>)</p>
 
 <div> les quetes sont :</div>
 
-<form action="ajouter.php" method="post">
-    <label for="nom">Nom de la quête</label>
-    <input id="nom" name="nom" required maxlength="150">
+<h2>Ajouter une quête</h2>
 
-    <label for="etat">Etat</label>
-    <select id="etat" name="etat">
-        <option value="a_demarrer">a demarrer</option>
-        <option value="en_cours">en cours</option>
-        <option value="finit">finit</option>
+<form action="ajouter.php" method="post">
+    <input
+        type="hidden"
+        name="csrf"
+        value="<?= htmlspecialchars(
+            $_SESSION['csrf'],
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?>"
+    >
+
+    <label for="quete">Nom de la quête</label>
+    <input
+        id="quete"
+        name="quete"
+        required
+        maxlength="150"
+    >
+
+    <label for="etat-quete">État</label>
+    <select id="etat-quete" name="etat">
+        <option value="en_cours">En cours</option>
+        <option value="finit">Terminée</option>
     </select>
 
     <button type="submit">Ajouter</button>
@@ -136,12 +215,3 @@ $quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
 </main>
 
 <?php include __DIR__ . '/assert/footer.php'; ?>
-
-<style>
-    .terminee {
-        color: green;
-    }
-    .a-faire {
-        color: red;
-    }
-</style>
