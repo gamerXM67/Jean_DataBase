@@ -1,20 +1,24 @@
 <?php
+    // Inclusion des fichiers de configuration et de connexion à la base
     require __DIR__ . '/securite.php';
     require __DIR__ . '/donnees.php';
     require __DIR__ . '/connexion.php';
 
-
+    // Paramètres de la page : filtres et état de la liste des quêtes
     $etatsAutorises = ['toutes', 'demarre', 'fini'];
     $etat = $_GET['etat'] ?? 'toutes';
     
+    // Informations de la page et comptage global
     $titrePage = "Ma liste de tâches";
     $compterTachesRestantes = 0;
     $requetes = $pdo->query('SELECT Id_quete, nom, etat, exclamation FROM quete');
     $quetes = $requetes->fetchAll();
-    $total=count($quetes);
+    $total = count($quetes);
+
+    // Fonction pour calculer le nombre de quêtes encore en cours
     function compterTachesRestantes(array $quetes): int
     {
-    $restantes=0;
+    $restantes = 0;
 
         foreach ($quetes as $plop_de_la_madame):
             if ($plop_de_la_madame['exclamation'] === 1) {
@@ -24,9 +28,12 @@
         return $restantes;
     }
     
+// Sécurisation du filtre d'état avant l'affichage
 if (!in_array($etat, $etatsAutorises, true)) {
     $etat = 'toutes';
 }
+
+// Récupération des quêtes selon le filtre sélectionné
 if ($etat === 'toutes') {
     $requete = $pdo->query(
         'SELECT Id_quete, nom, etat, exclamation
@@ -54,14 +61,15 @@ if ($etat === 'toutes') {
 
 $quetes = $requete->fetchAll(PDO::FETCH_ASSOC);
 
-    $restantes=compterTachesRestantes($quetes);
-    $Resultat = $total - $restantes; 
+// Calcul du nombre de quêtes restantes et du résultat final affiché
+$restantes = compterTachesRestantes($quetes);
+$Resultat = $total - $restantes;
 
 $message = $_SESSION['message'] ?? null;
 
 unset($_SESSION['message']);
 
-
+// Gestion du thème visuel choisi par l'utilisateur
 $theme = $_COOKIE['theme'] ?? 'clair';
 
 if (!in_array($theme, ['clair', 'sombre'], true)) {
@@ -70,20 +78,20 @@ if (!in_array($theme, ['clair', 'sombre'], true)) {
 
 
 
+    // Inclusion du layout principal de la page
     include __DIR__ . '/assert/header.php';
 ?>
-
-
 
 <main class="theme-<?= htmlspecialchars(
     $theme,
     ENT_QUOTES,
     'UTF-8'
 ) ?>">
-    
-        <h1><?php echo $titrePage; ?></h1>
 
-        <?php if (is_string($message)): ?>
+    <!-- Titre principal de la page -->
+    <h1><?php echo $titrePage; ?></h1>
+
+    <?php if (is_string($message)): ?>
     <p role="status">
         <?= htmlspecialchars(
             $message,
@@ -93,6 +101,7 @@ if (!in_array($theme, ['clair', 'sombre'], true)) {
     </p>
 <?php endif; ?>
 
+<!-- Bloc des paramètres visuels -->
 <h2>Préférence d’affichage</h2>
 
 <form action="preference.php" method="post">
@@ -127,10 +136,12 @@ if (!in_array($theme, ['clair', 'sombre'], true)) {
     <button type="submit">Enregistrer le thème</button>
 </form>
 
+<!-- Résumé du statut actuel des quêtes -->
 <p>le resultat(<?php echo $Resultat; ?>) est egal a total(<?php echo $total; ?>) - restantes(<?php echo $restantes; ?>)</p>
 
 <div> les quetes sont :</div>
 
+<!-- Formulaire d'ajout d'une nouvelle quête -->
 <h2>Ajouter une quête</h2>
 
 <form action="ajouter.php" method="post">
@@ -161,12 +172,35 @@ if (!in_array($theme, ['clair', 'sombre'], true)) {
     <button type="submit">Ajouter</button>
 </form>
 
+<!-- Filtres pour changer la vue de la liste -->
 <nav>
     <a href="index.php">Toutes les quêtes</a>
     <a href="index.php?etat=demarre">Quêtes en cours</a>
     <a href="index.php?etat=fini">Quêtes terminées</a>
 </nav>
 
+<h2>Export des quêtes</h2>
+
+<form action="exporter.php" method="post">
+    <input
+        type="hidden"
+        name="csrf"
+        value="<?= htmlspecialchars(
+            $_SESSION['csrf'],
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?>"
+    >
+
+    <button type="submit">Exporter les quêtes en JSON</button>
+</form>
+
+<p>
+    <a href="lire-export.php">Consulter le dernier export</a>
+</p>
+
+
+<!-- Liste des quêtes correspondant au filtre actuel -->
 <h2>Quêtes affichées</h2>
 
 <p>
